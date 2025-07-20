@@ -210,7 +210,6 @@ The VCAT value for the storage groups must be changed to match your installation
 files and populate the Db2 tables with
 data.](#create-the-vsam-files-and-populate-the-db2-tables-with-data)).
 
-Submit job **INSTDB2** to create the necessary Db2 artefacts.
 
 ##
 
