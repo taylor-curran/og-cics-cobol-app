@@ -839,46 +839,33 @@ public class Account extends HBankDataAccess
 	}
 
 
-	private String padCustomerNumber(String customerNumber2)
+	private String padWithZeros(String input, int targetLength)
 	{
-		// Customer Numbers are 10 digit numbers, prefixed with zeroes as
-		// required
 		StringBuilder myStringBuilder = new StringBuilder();
-		for (int z = customerNumber2.length(); z < CUSTOMER_NUMBER_LENGTH; z++)
+		for (int z = input.length(); z < targetLength; z++)
 		{
 			myStringBuilder.append("0");
 		}
-		myStringBuilder.append(customerNumber2);
+		myStringBuilder.append(input);
 		return myStringBuilder.toString();
+	}
+
+
+	private String padCustomerNumber(String customerNumber2)
+	{
+		return padWithZeros(customerNumber2, CUSTOMER_NUMBER_LENGTH);
 	}
 
 
 	private String padAccountNumber(Integer accountNumber2)
 	{
-		// Account Numbers are 8 digit numbers, prefixed with zeroes as required
-		StringBuilder myStringBuilder = new StringBuilder();
-		for (int z = accountNumber2.toString()
-				.length(); z < ACCOUNT_NUMBER_LENGTH; z++)
-		{
-			myStringBuilder.append("0");
-		}
-		myStringBuilder.append(accountNumber2.toString());
-		return myStringBuilder.toString();
+		return padWithZeros(accountNumber2.toString(), ACCOUNT_NUMBER_LENGTH);
 	}
 
 
 	private String padSortCode(Integer sortcode2)
 	{
-		// Sort codes are 6 digit numbers, prefixed with zeroes as required
-		StringBuilder myStringBuilder = new StringBuilder();
-
-		for (int z = sortcode2.toString().length(); z < SORT_CODE_LENGTH; z++)
-		{
-			myStringBuilder.append("0");
-		}
-		myStringBuilder.append(sortcode2.toString());
-		return myStringBuilder.toString();
-
+		return padWithZeros(sortcode2.toString(), SORT_CODE_LENGTH);
 	}
 
 
