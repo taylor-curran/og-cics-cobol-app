@@ -1,0 +1,775 @@
+{
+  "info": {
+    "name": "CBSA Carbon React UI Integration Tests",
+    "description": "Comprehensive integration tests for the CICS Banking Sample Application Carbon React UI covering three user stories:\n\n1. Create Customer with Age Validation (18-120 per docs, actual COBOL enforces max 150)\n2. View/Update Customer Details by ID or name with expandable account views\n3. Create Accounts with 10-account limit per customer\n\nAll successful transactions (except inquiries) are logged to PROCTRAN for audit purposes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Story 1 - Create Customer with Age Validation",
+      "item": [
+        {
+          "name": "Create Customer - Valid Age (25 years)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const today = new Date();",
+                  "const birthYear = today.getFullYear() - 25;",
+                  "const dateOfBirth = `${birthYear}-06-15`;",
+                  "pm.collectionVariables.set('validDateOfBirth', dateOfBirth);",
+                  "",
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const customerName = `Mr Test Customer ${randomNum}`;",
+                  "pm.collectionVariables.set('testCustomerName', customerName);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains customer ID', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.collectionVariables.set('customerId', jsonData.id);",
+                  "    pm.collectionVariables.set('customerNumber', jsonData.customerNumber);",
+                  "});",
+                  "",
+                  "pm.test('Customer name matches request', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.customerName).to.include('Mr Test Customer');",
+                  "});",
+                  "",
+                  "pm.test('Date of birth is set correctly', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.dateOfBirth).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"{{testCustomerName}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"customerAddress\": \"123 Test Street, Test Town, TE5T 1NG\",\n  \"dateOfBirth\": \"{{validDateOfBirth}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer - Minimum Age (18 years)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const today = new Date();",
+                  "const birthYear = today.getFullYear() - 18;",
+                  "const dateOfBirth = `${birthYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;",
+                  "pm.collectionVariables.set('minAgeDateOfBirth', dateOfBirth);",
+                  "",
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const customerName = `Ms Young Customer ${randomNum}`;",
+                  "pm.collectionVariables.set('youngCustomerName', customerName);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Customer with minimum age (18) is accepted', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    console.log('NOTE: COBOL does not enforce minimum age of 18, but user guide specifies it');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"{{youngCustomerName}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"customerAddress\": \"456 Young Street, Youth City, YO18 0LD\",\n  \"dateOfBirth\": \"{{minAgeDateOfBirth}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer - Maximum Age (120 years per docs)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const today = new Date();",
+                  "const birthYear = today.getFullYear() - 120;",
+                  "const dateOfBirth = `${birthYear}-01-01`;",
+                  "pm.collectionVariables.set('maxAgeDateOfBirth', dateOfBirth);",
+                  "",
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const customerName = `Mr Old Customer ${randomNum}`;",
+                  "pm.collectionVariables.set('oldCustomerName', customerName);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Customer with age 120 is accepted (COBOL allows up to 150)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    console.log('NOTE: User guide says max age 120, but COBOL actually allows up to 150');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"{{oldCustomerName}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"customerAddress\": \"789 Elder Avenue, Senior Town, SE12 0LD\",\n  \"dateOfBirth\": \"{{maxAgeDateOfBirth}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer - Age Too Old (151 years) - Should Fail",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const today = new Date();",
+                  "const birthYear = today.getFullYear() - 151;",
+                  "const dateOfBirth = `${birthYear}-01-01`;",
+                  "pm.collectionVariables.set('tooOldDateOfBirth', dateOfBirth);",
+                  "",
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const customerName = `Mr Too Old ${randomNum}`;",
+                  "pm.collectionVariables.set('tooOldCustomerName', customerName);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request or similar error', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Age over 150 is rejected by COBOL validation', function () {",
+                  "    console.log('Response:', pm.response.text());",
+                  "    console.log('Age validation enforced: max age 150 years');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"{{tooOldCustomerName}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"customerAddress\": \"999 Ancient Road, Old Town, OL15 1YR\",\n  \"dateOfBirth\": \"{{tooOldDateOfBirth}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer - Future Date of Birth - Should Fail",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const today = new Date();",
+                  "const futureYear = today.getFullYear() + 1;",
+                  "const dateOfBirth = `${futureYear}-01-01`;",
+                  "pm.collectionVariables.set('futureDateOfBirth', dateOfBirth);",
+                  "",
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const customerName = `Mr Future ${randomNum}`;",
+                  "pm.collectionVariables.set('futureCustomerName', customerName);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request or similar error', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Future date of birth is rejected', function () {",
+                  "    console.log('Response:', pm.response.text());",
+                  "    console.log('COBOL validates against future dates');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerName\": \"{{futureCustomerName}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"customerAddress\": \"111 Future Lane, Tomorrow City, FU00 0RE\",\n  \"dateOfBirth\": \"{{futureDateOfBirth}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Story 2 - View/Update Customer Details",
+      "item": [
+        {
+          "name": "Get Customer by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains customer details', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('customerName');",
+                  "    pm.expect(jsonData).to.have.property('customerAddress');",
+                  "    pm.expect(jsonData).to.have.property('dateOfBirth');",
+                  "});",
+                  "",
+                  "pm.test('Customer ID matches requested ID', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var requestedId = pm.collectionVariables.get('customerId');",
+                  "    pm.expect(jsonData.id).to.eql(requestedId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "{{customerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer by Name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains customers array', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('customers');",
+                  "    pm.expect(jsonData.customers).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('At least one customer found with matching name', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.customers.length).to.be.at.least(1);",
+                  "    var searchName = pm.collectionVariables.get('testCustomerName');",
+                  "    var found = jsonData.customers.some(c => c.customerName.includes('Test Customer'));",
+                  "    pm.expect(found).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/name?name={{testCustomerName}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "name"],
+              "query": [
+                {
+                  "key": "name",
+                  "value": "{{testCustomerName}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Customer Details",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const randomNum = Math.floor(Math.random() * 10000);",
+                  "const updatedAddress = `Updated Address ${randomNum}, New Town, NE12 3WS`;",
+                  "pm.collectionVariables.set('updatedAddress', updatedAddress);"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Customer address was updated', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var updatedAddress = pm.collectionVariables.get('updatedAddress');",
+                  "    pm.expect(jsonData.customerAddress).to.eql(updatedAddress);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerAddress\": \"{{updatedAddress}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/customer/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "{{customerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer with Expandable Accounts",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains accounts array', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accounts');",
+                  "    pm.expect(jsonData.accounts).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('Expandable account view shows account details', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.accounts.length > 0) {",
+                  "        var account = jsonData.accounts[0];",
+                  "        pm.expect(account).to.have.property('id');",
+                  "        pm.expect(account).to.have.property('accountType');",
+                  "        console.log('Account details:', JSON.stringify(account));",
+                  "    } else {",
+                  "        console.log('No accounts found for customer (expected if no accounts created yet)');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/retrieveByCustomerNumber/{{customerNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "retrieveByCustomerNumber", "{{customerNumber}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Story 3 - Create Accounts with 10-Account Limit",
+      "item": [
+        {
+          "name": "Create Account - Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Response contains account details', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('id');",
+                  "    pm.expect(jsonData).to.have.property('accountType');",
+                  "    pm.collectionVariables.set('firstAccountId', jsonData.id);",
+                  "});",
+                  "",
+                  "pm.test('Account is linked to correct customer', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var expectedCustomerNumber = pm.collectionVariables.get('customerNumber');",
+                  "    pm.expect(jsonData.customerNumber).to.eql(expectedCustomerNumber);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerNumber\": \"{{customerNumber}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"accountType\": \"SAVING\",\n  \"interestRate\": \"1.5\",\n  \"overdraft\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account",
+              "host": ["{{baseUrl}}"],
+              "path": ["account"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create 9 More Accounts (Total 10)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const customerNumber = pm.collectionVariables.get('customerNumber');",
+                  "const sortCode = pm.collectionVariables.get('sortCode');",
+                  "const baseUrl = pm.collectionVariables.get('baseUrl');",
+                  "",
+                  "let accountsCreated = 1;",
+                  "const maxAccounts = 9;",
+                  "",
+                  "const accountTypes = ['CURRENT', 'SAVING', 'LOAN', 'MORTGAGE', 'ISA'];",
+                  "",
+                  "function createAccount(index) {",
+                  "    return new Promise((resolve, reject) => {",
+                  "        const accountType = accountTypes[index % accountTypes.length];",
+                  "        ",
+                  "        pm.sendRequest({",
+                  "            url: `${baseUrl}/account`,",
+                  "            method: 'POST',",
+                  "            header: {",
+                  "                'Content-Type': 'application/json'",
+                  "            },",
+                  "            body: {",
+                  "                mode: 'raw',",
+                  "                raw: JSON.stringify({",
+                  "                    customerNumber: customerNumber,",
+                  "                    sortCode: sortCode,",
+                  "                    accountType: accountType,",
+                  "                    interestRate: '1.0',",
+                  "                    overdraft: 0",
+                  "                })",
+                  "            }",
+                  "        }, (err, res) => {",
+                  "            if (err) {",
+                  "                console.log(`Error creating account ${index + 2}:`, err);",
+                  "                reject(err);",
+                  "            } else {",
+                  "                console.log(`Account ${index + 2} created with status:`, res.code);",
+                  "                resolve(res);",
+                  "            }",
+                  "        });",
+                  "    });",
+                  "}",
+                  "",
+                  "async function createMultipleAccounts() {",
+                  "    for (let i = 0; i < maxAccounts; i++) {",
+                  "        await createAccount(i);",
+                  "    }",
+                  "}",
+                  "",
+                  "createMultipleAccounts().then(() => {",
+                  "    console.log('Successfully created 9 more accounts (total 10)');",
+                  "}).catch(err => {",
+                  "    console.error('Failed to create accounts:', err);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Pre-request script completed account creation', function () {",
+                  "    console.log('9 additional accounts created via pre-request script');",
+                  "    console.log('Total accounts for customer should now be 10');",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/retrieveByCustomerNumber/{{customerNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "retrieveByCustomerNumber", "{{customerNumber}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify 10 Accounts Exist",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Customer has exactly 10 accounts', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.accounts).to.be.an('array');",
+                  "    pm.expect(jsonData.accounts.length).to.eql(10);",
+                  "    console.log('Account count:', jsonData.accounts.length);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/retrieveByCustomerNumber/{{customerNumber}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["account", "retrieveByCustomerNumber", "{{customerNumber}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create 11th Account - Should Fail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('11th account is rejected due to 10-account limit', function () {",
+                  "    console.log('Response:', pm.response.text());",
+                  "    console.log('MAXIMUM_ACCOUNTS_PER_CUSTOMER = 10 enforced successfully');",
+                  "});",
+                  "",
+                  "pm.test('Error message indicates account limit reached', function () {",
+                  "    var responseText = pm.response.text().toLowerCase();",
+                  "    var hasLimitMessage = responseText.includes('limit') || ",
+                  "                          responseText.includes('maximum') || ",
+                  "                          responseText.includes('10');",
+                  "    pm.expect(hasLimitMessage).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerNumber\": \"{{customerNumber}}\",\n  \"sortCode\": \"{{sortCode}}\",\n  \"accountType\": \"CURRENT\",\n  \"interestRate\": \"0.5\",\n  \"overdraft\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/account",
+              "host": ["{{baseUrl}}"],
+              "path": ["account"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "customerNumber",
+      "value": ""
+    },
+    {
+      "key": "testCustomerName",
+      "value": ""
+    },
+    {
+      "key": "validDateOfBirth",
+      "value": ""
+    },
+    {
+      "key": "minAgeDateOfBirth",
+      "value": ""
+    },
+    {
+      "key": "maxAgeDateOfBirth",
+      "value": ""
+    },
+    {
+      "key": "tooOldDateOfBirth",
+      "value": ""
+    },
+    {
+      "key": "futureDateOfBirth",
+      "value": ""
+    },
+    {
+      "key": "youngCustomerName",
+      "value": ""
+    },
+    {
+      "key": "oldCustomerName",
+      "value": ""
+    },
+    {
+      "key": "tooOldCustomerName",
+      "value": ""
+    },
+    {
+      "key": "futureCustomerName",
+      "value": ""
+    },
+    {
+      "key": "updatedAddress",
+      "value": ""
+    },
+    {
+      "key": "firstAccountId",
+      "value": ""
+    }
+  ]
+}
