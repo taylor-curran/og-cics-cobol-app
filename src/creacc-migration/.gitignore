@@ -1,0 +1,15 @@
+# Build output
+target/
+
+# IDE files
+.classpath
+.project
+.settings/
+*.iml
+.idea/
+
+# Database files
+*.db
+
+# Log files
+*.log
