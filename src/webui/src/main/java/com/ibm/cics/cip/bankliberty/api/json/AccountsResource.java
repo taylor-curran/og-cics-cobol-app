@@ -927,41 +927,69 @@ public class AccountsResource extends HBankDataAccess
 			TransferLocalJSON transferLocal)
 	{
 		// we use this to move money between two accounts at the same bank
+		// Migrated from COBOL program XFRFUN (XFRFUN.cbl) and BNK1TFN (BNK1TFN.cbl)
 		logger.entering(this.getClass().getName(),
 				"transferLocalExternal(String accountNumber, TransferLocalJSON transferLocal)");
 		Integer accountNumberInteger;
+		JSONObject error = new JSONObject();
+
+		// Validate FROM account number is numeric
 		try
 		{
 			accountNumberInteger = Integer.parseInt(accountNumber);
 			if (accountNumberInteger.intValue() < 1
 					|| accountNumberInteger.intValue() == 99999999)
 			{
-				return null;
+				error.put(JSON_ERROR_MSG, "FROM account number is invalid");
+				error.put("failCode", "1");
+				return Response.status(400).entity(error.toString()).build();
 			}
 		}
 		catch (NumberFormatException e)
 		{
-			return null;
+			error.put(JSON_ERROR_MSG, "FROM account number must be numeric");
+			error.put("failCode", "1");
+			return Response.status(400).entity(error.toString()).build();
 		}
+
+		// Validate FROM account is not '00000000' (per COBOL BNK1TFN.cbl validation)
+		if (accountNumber.equals("00000000") || accountNumberInteger.intValue() == 0)
+		{
+			error.put(JSON_ERROR_MSG, "Account number 00000000 is not valid");
+			error.put("failCode", "1");
+			return Response.status(400).entity(error.toString()).build();
+		}
+
+		// Validate amount
+		if (transferLocal.getAmount() == null || transferLocal.getAmount().doubleValue() <= 0.00)
+		{
+			error.put(JSON_ERROR_MSG, "Amount must be greater than zero");
+			error.put("failCode", "4");
+			return Response.status(400).entity(error.toString()).build();
+		}
+
 		TransferLocalJSON transferLocalValid = new TransferLocalJSON();
-		if (transferLocal.getAmount().doubleValue() < 0.00)
-		{
-			return null;
-		}
-		else
-		{
-			transferLocalValid.setAmount(transferLocal.getAmount());
-		}
-		if (transferLocal.getTargetAccount() < 1
+		transferLocalValid.setAmount(transferLocal.getAmount());
+
+		// Validate TO account number
+		if (transferLocal.getTargetAccount() == null
+				|| transferLocal.getTargetAccount() < 1
 				|| transferLocal.getTargetAccount() == 99999999)
 		{
-			return null;
+			error.put(JSON_ERROR_MSG, "TO account number is invalid");
+			error.put("failCode", "2");
+			return Response.status(400).entity(error.toString()).build();
 		}
-		else
+
+		// Validate TO account is not '00000000' (per COBOL BNK1TFN.cbl validation)
+		if (transferLocal.getTargetAccount() == 0)
 		{
-			transferLocalValid
-					.setTargetAccount(transferLocal.getTargetAccount());
+			error.put(JSON_ERROR_MSG, "Account number 00000000 is not valid");
+			error.put("failCode", "2");
+			return Response.status(400).entity(error.toString()).build();
 		}
+
+		transferLocalValid.setTargetAccount(transferLocal.getTargetAccount());
 
 		Response myResponse = transferLocalInternal(
 				accountNumberInteger.toString(), transferLocalValid);
@@ -977,19 +1005,19 @@ public class AccountsResource extends HBankDataAccess
 	public Response transferLocalInternal(@PathParam("id") String accountNumber,
 			TransferLocalJSON transferLocal)
 	{
-		// we use this to move money between two accounts at the same bank
+		// Transfer funds between two accounts at the same bank
+		// Migrated from COBOL program XFRFUN (XFRFUN.cbl) and BNK1TFN (BNK1TFN.cbl)
 		logger.entering(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL);
 		Response myResponse = null;
 
-		// * We are transferring money from account "id" at this bank, to
-		// another account at this bank
-		// * The amount MUST be positive
 		JSONObject response = new JSONObject();
 
+		// Validate FROM and TO accounts are different (per COBOL XFRFUN.cbl line 316-376)
 		if (Integer.parseInt(accountNumber) == transferLocal.getTargetAccount())
 		{
 			JSONObject error = new JSONObject();
 			error.put(JSON_ERROR_MSG, NEED_DIFFERENT_ACCOUNTS);
+			error.put("failCode", "3");
 			logger.log(Level.WARNING, () -> (NEED_DIFFERENT_ACCOUNTS));
 			myResponse = Response.status(400).entity(error.toString()).build();
 			logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
@@ -997,11 +1025,13 @@ public class AccountsResource extends HBankDataAccess
 			return myResponse;
 		}
 
+		// Validate amount is positive (per COBOL XFRFUN.cbl line 289-293, fail code '4')
 		if (transferLocal.getAmount().doubleValue() <= 0.00)
 		{
 			JSONObject error = new JSONObject();
-			error.put(JSON_ERROR_MSG, "Amount to transfer must be positive");
-			logger.log(Level.WARNING, () -> (NEED_DIFFERENT_ACCOUNTS));
+			error.put(JSON_ERROR_MSG, "Amount must be greater than zero");
+			error.put("failCode", "4");
+			logger.log(Level.WARNING, () -> "Amount must be greater than zero");
 			myResponse = Response.status(400).entity(error.toString()).build();
 			logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
 					myResponse);
@@ -1016,7 +1046,7 @@ public class AccountsResource extends HBankDataAccess
 
 		Long sortCode = Long.parseLong(this.getSortCode().toString());
 
-		// Let's make sure that from account and to account exist
+		// Verify FROM account exists (fail code '1' if not found)
 		AccountsResource checkAccount = new AccountsResource();
 		Response checkAccountResponse = checkAccount
 				.getAccountInternal(Long.parseLong(accountNumber));
@@ -1026,6 +1056,7 @@ public class AccountsResource extends HBankDataAccess
 			JSONObject error = new JSONObject();
 			error.put(JSON_ERROR_MSG,
 					SOURCE_ACCOUNT_NUMBER + accountNumber + CANNOT_BE_FOUND);
+			error.put("failCode", "1");
 			logger.log(Level.WARNING, () -> (SOURCE_ACCOUNT_NUMBER
 					+ accountNumber + CANNOT_BE_FOUND));
 			myResponse = Response.status(404).entity(error.toString()).build();
@@ -1039,6 +1070,7 @@ public class AccountsResource extends HBankDataAccess
 			JSONObject error = new JSONObject();
 			error.put(JSON_ERROR_MSG,
 					SOURCE_ACCOUNT_NUMBER + accountNumber + CANNOT_BE_ACCESSED);
+			error.put("failCode", "3");
 			logger.log(Level.WARNING, () -> (SOURCE_ACCOUNT_NUMBER
 					+ accountNumber + CANNOT_BE_ACCESSED));
 			myResponse = Response.status(checkAccountResponse.getStatus())
@@ -1047,6 +1079,8 @@ public class AccountsResource extends HBankDataAccess
 					myResponse);
 			return myResponse;
 		}
+
+		// Verify TO account exists (fail code '2' if not found)
 		checkAccountResponse = checkAccount.getAccountInternal(
 				Long.parseLong(transferLocal.getTargetAccount().toString()));
 
@@ -1055,8 +1089,9 @@ public class AccountsResource extends HBankDataAccess
 			JSONObject error = new JSONObject();
 			error.put(JSON_ERROR_MSG, TARGET_ACCOUNT_NUMBER
 					+ transferLocal.getTargetAccount() + CANNOT_BE_FOUND);
+			error.put("failCode", "2");
 			logger.log(Level.WARNING, () -> (TARGET_ACCOUNT_NUMBER
-					+ accountNumber + CANNOT_BE_FOUND));
+					+ transferLocal.getTargetAccount() + CANNOT_BE_FOUND));
 			myResponse = Response.status(404).entity(error.toString()).build();
 			logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
 					myResponse);
@@ -1067,28 +1102,69 @@ public class AccountsResource extends HBankDataAccess
 			JSONObject error = new JSONObject();
 			error.put(JSON_ERROR_MSG, TARGET_ACCOUNT_NUMBER
 					+ transferLocal.getTargetAccount() + CANNOT_BE_ACCESSED);
-			logger.log(Level.SEVERE, () -> TARGET_ACCOUNT_NUMBER + accountNumber
-					+ CANNOT_BE_ACCESSED);
-			myResponse = Response.status(404).entity(error.toString()).build();
+			error.put("failCode", "3");
+			logger.log(Level.SEVERE, () -> TARGET_ACCOUNT_NUMBER
+					+ transferLocal.getTargetAccount() + CANNOT_BE_ACCESSED);
+			myResponse = Response.status(500).entity(error.toString()).build();
 			logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
 					myResponse);
 			return myResponse;
 		}
 
-		com.ibm.cics.cip.bankliberty.web.db2.Account db2Account = new com.ibm.cics.cip.bankliberty.web.db2.Account();
-		db2Account.setAccountNumber(accountNumber);
-		db2Account.setSortcode(sortCode.toString());
-		db2Account.debitCredit(negativeAmount);
+		// Debit the FROM account
+		com.ibm.cics.cip.bankliberty.web.db2.Account fromAccount = new com.ibm.cics.cip.bankliberty.web.db2.Account();
+		fromAccount.setAccountNumber(accountNumber);
+		fromAccount.setSortcode(sortCode.toString());
+		if (!fromAccount.debitCredit(negativeAmount))
+		{
+			JSONObject error = new JSONObject();
+			error.put(JSON_ERROR_MSG, "Failed to debit FROM account " + accountNumber);
+			error.put("failCode", "3");
+			logger.log(Level.SEVERE, () -> "Failed to debit FROM account " + accountNumber);
+			try
+			{
+				Task.getTask().rollback();
+			}
+			catch (InvalidRequestException e)
+			{
+				logger.log(Level.SEVERE, () -> "Rollback failed after debit failure");
+			}
+			myResponse = Response.status(500).entity(error.toString()).build();
+			logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
+					myResponse);
+			return myResponse;
+		}
 
-		db2Account.setAccountNumber(transferLocal.targetAccount.toString());
-		db2Account.setSortcode(sortCode.toString());
-		db2Account.debitCredit(amount);
+		// Credit the TO account
+		com.ibm.cics.cip.bankliberty.web.db2.Account toAccount = new com.ibm.cics.cip.bankliberty.web.db2.Account();
+		toAccount.setAccountNumber(transferLocal.getTargetAccount().toString());
+		toAccount.setSortcode(sortCode.toString());
+		if (!toAccount.debitCredit(amount))
+		{
+			JSONObject error = new JSONObject();
+			error.put(JSON_ERROR_MSG, "Failed to credit TO account " + transferLocal.getTargetAccount());
+			error.put("failCode", "3");
+			logger.log(Level.SEVERE, () -> "Failed to credit TO account " + transferLocal.getTargetAccount());
+			try
+			{
+				Task.getTask().rollback();
+			}
+			catch (InvalidRequestException e)
+			{
+				logger.log(Level.SEVERE, () -> "Rollback failed after credit failure");
+			}
+			myResponse = Response.status(500).entity(error.toString()).build();
+			logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
+					myResponse);
+			return myResponse;
+		}
 
+		// Write audit record to PROCTRAN table
 		ProcessedTransactionResource myProcessedTransactionResource = new ProcessedTransactionResource();
 
 		ProcessedTransactionTransferLocalJSON myProctranTransferLocal = new ProcessedTransactionTransferLocalJSON();
-		myProctranTransferLocal.setSortCode(db2Account.getSortcode());
-		myProctranTransferLocal.setAccountNumber(db2Account.getAccountNumber());
+		myProctranTransferLocal.setSortCode(fromAccount.getSortcode());
+		myProctranTransferLocal.setAccountNumber(fromAccount.getAccountNumber());
 		myProctranTransferLocal.setAmount(amount);
 		myProctranTransferLocal.setTargetAccountNumber(
 				transferLocal.getTargetAccount().toString());
@@ -1100,6 +1176,7 @@ public class AccountsResource extends HBankDataAccess
 		{
 			JSONObject error = new JSONObject();
 			error.put(JSON_ERROR_MSG, PROCTRAN_WRITE_FAILURE);
+			error.put("failCode", "3");
 			logger.log(Level.SEVERE,
 					() -> "Accounts: transferLocal: " + PROCTRAN_WRITE_FAILURE);
 			try
@@ -1117,14 +1194,31 @@ public class AccountsResource extends HBankDataAccess
 			return myResponse;
 		}
 
-		response.put(JSON_SORT_CODE, db2Account.getSortcode().trim());
-		response.put("id", db2Account.getAccountNumber());
-		response.put(JSON_AVAILABLE_BALANCE,
-				BigDecimal.valueOf(db2Account.getAvailableBalance()));
-		response.put(JSON_ACTUAL_BALANCE,
-				BigDecimal.valueOf(db2Account.getActualBalance()));
-		response.put(JSON_INTEREST_RATE,
-				BigDecimal.valueOf(db2Account.getInterestRate()));
+		// Build success response with both FROM and TO account balances
+		// (per COBOL XFRFUN.cbl which returns balances for both accounts)
+		response.put(JSON_SORT_CODE, fromAccount.getSortcode().trim());
+
+		// FROM account details
+		JSONObject fromAccountJson = new JSONObject();
+		fromAccountJson.put("accountNumber", fromAccount.getAccountNumber());
+		fromAccountJson.put(JSON_AVAILABLE_BALANCE,
+				BigDecimal.valueOf(fromAccount.getAvailableBalance()));
+		fromAccountJson.put(JSON_ACTUAL_BALANCE,
+				BigDecimal.valueOf(fromAccount.getActualBalance()));
+		response.put("fromAccount", fromAccountJson);
+
+		// TO account details
+		JSONObject toAccountJson = new JSONObject();
+		toAccountJson.put("accountNumber", toAccount.getAccountNumber());
+		toAccountJson.put(JSON_AVAILABLE_BALANCE,
+				BigDecimal.valueOf(toAccount.getAvailableBalance()));
+		toAccountJson.put(JSON_ACTUAL_BALANCE,
+				BigDecimal.valueOf(toAccount.getActualBalance()));
+		response.put("toAccount", toAccountJson);
+
+		// Transfer details
+		response.put("transferAmount", amount);
+		response.put("success", "Y");
 
 		myResponse = Response.status(200).entity(response.toString()).build();
 		logger.exiting(this.getClass().getName(), TRANSFER_LOCAL_INTERNAL,
