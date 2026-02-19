@@ -8,14 +8,13 @@ package com.ibm.cics.cip.bankliberty.transaction;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ibm.cics.server.CicsConditionException;
 import com.ibm.cics.server.CommAreaHolder;
 import com.ibm.cics.server.Program;
+import com.ibm.cics.cip.bankliberty.datainterfaces.XFRFUNCommarea;
 
 public class BNK1TFN
 {
@@ -90,11 +89,11 @@ public class BNK1TFN
 			return;
 		}
 
-		String fromAccount = XFRFUN.extractField(commArea,
-				COMMAREA_FACCNO_OFFSET, COMMAREA_FACCNO_LENGTH);
-		String toAccount = XFRFUN.extractField(commArea,
-				COMMAREA_TACCNO_OFFSET, COMMAREA_TACCNO_LENGTH);
-		String amountStr = XFRFUN.extractField(commArea, COMMAREA_AMT_OFFSET,
+		String fromAccount = extractField(commArea, COMMAREA_FACCNO_OFFSET,
+				COMMAREA_FACCNO_LENGTH);
+		String toAccount = extractField(commArea, COMMAREA_TACCNO_OFFSET,
+				COMMAREA_TACCNO_LENGTH);
+		String amountStr = extractField(commArea, COMMAREA_AMT_OFFSET,
 				COMMAREA_AMT_LENGTH);
 
 		String validationError = validateInputs(fromAccount, toAccount,
@@ -114,20 +113,18 @@ public class BNK1TFN
 			return;
 		}
 
-		byte[] subpgmParms = new byte[XFRFUN.COMMAREA_LENGTH];
-		Arrays.fill(subpgmParms, (byte) '0');
-
-		XFRFUN.writeField(subpgmParms, 0, 8, fromAccount);
-		XFRFUN.writeField(subpgmParms, 14, 8, toAccount);
-		XFRFUN.writeAmount(subpgmParms, 28, 12, amount);
-		subpgmParms[89] = (byte) 'N';
+		XFRFUNCommarea xfrfunComm = new XFRFUNCommarea();
+		xfrfunComm.setCommFaccno(Integer.parseInt(fromAccount));
+		xfrfunComm.setCommTaccno(Integer.parseInt(toAccount));
+		xfrfunComm.setCommAmt(amount);
+		xfrfunComm.setCommSuccess("N");
 
 		try
 		{
 			Program xfrfun = new Program();
 			xfrfun.setName("XFRFUN");
 			xfrfun.setSyncOnReturn(true);
-			xfrfun.link(subpgmParms);
+			xfrfun.link(xfrfunComm.getByteBuffer());
 		}
 		catch (CicsConditionException e)
 		{
@@ -137,23 +134,23 @@ public class BNK1TFN
 			return;
 		}
 
-		char success = (char) subpgmParms[89];
-		if (success == 'N')
+		String success = xfrfunComm.getCommSuccess().trim();
+		if ("N".equals(success))
 		{
-			char failCode = (char) subpgmParms[88];
+			String failCode = xfrfunComm.getCommFailCode().trim();
 			String errorMsg = getErrorMessage(failCode);
 			logger.log(Level.WARNING, () -> errorMsg);
 		}
-		else if (success == 'Y')
+		else if ("Y".equals(success))
 		{
-			String fromSortCode = XFRFUN.extractField(subpgmParms, 8, 6);
-			String toSortCode = XFRFUN.extractField(subpgmParms, 22, 6);
-			BigDecimal fromAvailBal = XFRFUN.extractAmount(subpgmParms, 40,
-					12);
-			BigDecimal fromActualBal = XFRFUN.extractAmount(subpgmParms, 52,
-					12);
-			BigDecimal toAvailBal = XFRFUN.extractAmount(subpgmParms, 64, 12);
-			BigDecimal toActualBal = XFRFUN.extractAmount(subpgmParms, 76, 12);
+			String fromSortCode = String.format("%06d",
+					xfrfunComm.getCommFscode());
+			String toSortCode = String.format("%06d",
+					xfrfunComm.getCommTscode());
+			BigDecimal fromAvailBal = xfrfunComm.getCommFavbal();
+			BigDecimal fromActualBal = xfrfunComm.getCommFactbal();
+			BigDecimal toAvailBal = xfrfunComm.getCommTavbal();
+			BigDecimal toActualBal = xfrfunComm.getCommTactbal();
 
 			logger.log(Level.INFO, () -> MSG_SUCCESS);
 			logger.log(Level.INFO,
@@ -301,17 +298,17 @@ public class BNK1TFN
 	}
 
 
-	private static String getErrorMessage(char failCode)
+	private static String getErrorMessage(String failCode)
 	{
 		switch (failCode)
 		{
-		case '1':
+		case "1":
 			return MSG_FROM_NOT_FOUND;
-		case '2':
+		case "2":
 			return MSG_TO_NOT_FOUND;
-		case '3':
+		case "3":
 			return MSG_UNEXPECTED_ERROR;
-		case '4':
+		case "4":
 			return MSG_ZERO_AMOUNT_ERROR;
 		default:
 			return MSG_UNKNOWN_ERROR;
@@ -333,5 +330,12 @@ public class BNK1TFN
 			}
 		}
 		return true;
+	}
+
+
+	private static String extractField(byte[] data, int offset, int length)
+	{
+		return new String(data, offset, length,
+				java.nio.charset.StandardCharsets.UTF_8).trim();
 	}
 }
