@@ -42,8 +42,6 @@ const AdminPage = () => {
     setSuccessModalOpened(wasOpened => !wasOpened);
   }
 
-
-
   return (
     <Grid className="landing-page" fullWidth>
       <Column lg={16} md={8} sm={4} className="landing-page__banner">
@@ -132,12 +130,58 @@ const AdminPage = () => {
                         />
                       </Button>
                       <hr class="half-width" />
+                      <br />
+                      <br />
+                      <h5>Update Services</h5>
+                      <br />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/customer_update"
+                          prefix="Update customer details"
+                        />
+                      </Button>
+                      <hr class="half-width" />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/account_update"
+                          prefix="Update account details"
+                        />
+                      </Button>
+                      <hr class="half-width" />
+                      <br />
+                      <br />
+                      <h5>Payments & Listings</h5>
+                      <br />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/payment"
+                          prefix="Make a payment"
+                        />
+                      </Button>
+                      <hr class="half-width" />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/list_accounts"
+                          prefix="List accounts by customer"
+                        />
+                      </Button>
+                      <hr class="half-width" />
                     </Column>
                   </div>
                   <div className="control-panel-right-child">
                     <img
                       className="landing-page__illo"
-                      src={`${process.env.PUBLIC_URL}/promo-band-illustration-1920x1080-2x.png`}
+                      src={`${
+                        process.env.PUBLIC_URL
+                      }/promo-band-illustration-1920x1080-2x.png`}
                       alt="Carbon illustration"
                     />
                   </div>

@@ -16,23 +16,17 @@ import AccountCreationPage from './content/AccountCreationPage';
 import CustomerDetailsPage from './content/CustomerDetailsPage';
 import AccountDetailsPage from './content/AccountDetailsPage';
 import CustomerDeletePage from './content/CustomerDeletePage';
-import AccountDeletePage from './content/AccountDeletePage'
-import { HashRouter, Route, Switch} from 'react-router-dom';
-
-
-
+import AccountDeletePage from './content/AccountDeletePage';
+import PaymentPage from './content/PaymentPage';
+import ListAccountsPage from './content/ListAccountsPage';
+import CustomerUpdatePage from './content/CustomerUpdatePage';
+import AccountUpdatePage from './content/AccountUpdatePage';
+import { HashRouter, Route, Switch } from 'react-router-dom';
 
 class App extends Component {
-
-
   render() {
-
-
-
-
     return (
-
-      <HashRouter forceRefresh={true} >
+      <HashRouter forceRefresh={true}>
         <Theme theme="g100">
           <HomepageHeader />
           <Switch>
@@ -55,6 +49,18 @@ class App extends Component {
           </Switch>
           <Switch>
             <Route path="/Admin/account_deletion" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/payment" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/list_accounts" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/customer_update" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/account_update" component={AdminHeader} />
           </Switch>
         </Theme>
         <Content>
@@ -85,6 +91,13 @@ class App extends Component {
               path="/Admin/account_deletion"
               component={AccountDeletePage}
             />
+            <Route path="/Admin/payment" component={PaymentPage} />
+            <Route path="/Admin/list_accounts" component={ListAccountsPage} />
+            <Route
+              path="/Admin/customer_update"
+              component={CustomerUpdatePage}
+            />
+            <Route path="/Admin/account_update" component={AccountUpdatePage} />
             <Route path="./profile/Admin" component={AdminPage} />
             <Route path="./#/profile/Admin" component={AdminPage} />
             <Route path="/profile/Admin" component={AdminPage} />
@@ -99,15 +112,24 @@ class App extends Component {
 
 // https://stackoverflow.com/questions/34093913/how-to-debug-react-router
 class DebugRouter extends HashRouter {
-  constructor(props){
+  constructor(props) {
     super(props);
-    console.log('initial history is: ', JSON.stringify(this.history, null,2))
-    this.history.listen((location, action)=>{
+    console.log('initial history is: ', JSON.stringify(this.history, null, 2));
+    this.history.listen((location, action) => {
       console.log(
-        `The current URL is ${location.pathname}${location.search}${location.hash}`
-      )
-      console.log(`The last navigation action was ${action}`, JSON.stringify(this.history, null,2));
-window.alert(`The current URL is ${location.pathname}${location.search}${location.hash}`);
+        `The current URL is ${location.pathname}${location.search}${
+          location.hash
+        }`
+      );
+      console.log(
+        `The last navigation action was ${action}`,
+        JSON.stringify(this.history, null, 2)
+      );
+      window.alert(
+        `The current URL is ${location.pathname}${location.search}${
+          location.hash
+        }`
+      );
     });
   }
 }

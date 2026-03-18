@@ -36,7 +36,7 @@ const AdminHeader = () => {
             onClick={onClickSideNavExpand}
             isActive={isSideNavExpanded}
           />
-          <HeaderName element={Link} to="/" >
+          <HeaderName element={Link} to="/">
             CICS Banking Sample Application
           </HeaderName>
           <SideNav
@@ -70,11 +70,19 @@ const AdminHeader = () => {
                 </SideNavMenuItem>
               </SideNavMenu>
               <SideNavMenu title="Update Details">
-                <SideNavMenuItem href="./#/Admin/customer_details">
+                <SideNavMenuItem href="./#/Admin/customer_update">
                   Update Customer Details
                 </SideNavMenuItem>
-                <SideNavMenuItem href="./#/Admin/account_details">
+                <SideNavMenuItem href="./#/Admin/account_update">
                   Update Account Details
+                </SideNavMenuItem>
+              </SideNavMenu>
+              <SideNavMenu title="Payments & Accounts">
+                <SideNavMenuItem href="./#/Admin/payment">
+                  Make Payment
+                </SideNavMenuItem>
+                <SideNavMenuItem href="./#/Admin/list_accounts">
+                  List Accounts by Customer
                 </SideNavMenuItem>
               </SideNavMenu>
             </SideNavItems>
