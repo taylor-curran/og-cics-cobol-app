@@ -17,6 +17,10 @@ import CustomerDetailsPage from './content/CustomerDetailsPage';
 import AccountDetailsPage from './content/AccountDetailsPage';
 import CustomerDeletePage from './content/CustomerDeletePage';
 import AccountDeletePage from './content/AccountDeletePage'
+import PaymentPage from './content/PaymentPage';
+import ListAccountsPage from './content/ListAccountsPage';
+import CustomerUpdatePage from './content/CustomerUpdatePage';
+import AccountUpdatePage from './content/AccountUpdatePage';
 import { HashRouter, Route, Switch} from 'react-router-dom';
 
 
@@ -56,6 +60,18 @@ class App extends Component {
           <Switch>
             <Route path="/Admin/account_deletion" component={AdminHeader} />
           </Switch>
+          <Switch>
+            <Route path="/Admin/payment" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/list_accounts" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/customer_update" component={AdminHeader} />
+          </Switch>
+          <Switch>
+            <Route path="/Admin/account_update" component={AdminHeader} />
+          </Switch>
         </Theme>
         <Content>
           <Switch>
@@ -84,6 +100,22 @@ class App extends Component {
             <Route
               path="/Admin/account_deletion"
               component={AccountDeletePage}
+            />
+            <Route
+              path="/Admin/payment"
+              component={PaymentPage}
+            />
+            <Route
+              path="/Admin/list_accounts"
+              component={ListAccountsPage}
+            />
+            <Route
+              path="/Admin/customer_update"
+              component={CustomerUpdatePage}
+            />
+            <Route
+              path="/Admin/account_update"
+              component={AccountUpdatePage}
             />
             <Route path="./profile/Admin" component={AdminPage} />
             <Route path="./#/profile/Admin" component={AdminPage} />

@@ -132,6 +132,50 @@ const AdminPage = () => {
                         />
                       </Button>
                       <hr class="half-width" />
+                      <br />
+                      <br />
+                      <h5>Update Services</h5>
+                      <br />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/customer_update"
+                          prefix="Update customer details"
+                        />
+                      </Button>
+                      <hr class="half-width" />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/account_update"
+                          prefix="Update account details"
+                        />
+                      </Button>
+                      <hr class="half-width" />
+                      <br />
+                      <br />
+                      <h5>Payments & Listings</h5>
+                      <br />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/payment"
+                          prefix="Make a payment"
+                        />
+                      </Button>
+                      <hr class="half-width" />
+                      <Button kind="ghost">
+                        <HeaderName
+                          className="white-background"
+                          element={Link}
+                          to="/Admin/list_accounts"
+                          prefix="List accounts by customer"
+                        />
+                      </Button>
+                      <hr class="half-width" />
                     </Column>
                   </div>
                   <div className="control-panel-right-child">
