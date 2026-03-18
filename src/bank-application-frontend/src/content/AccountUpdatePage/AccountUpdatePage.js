@@ -23,10 +23,13 @@ import {
 const AccountUpdatePage = () => {
   const [isModalOpened, setModalOpened] = useState(false);
   const [isFailureModalOpened, setIsFailureModalOpened] = useState(false);
-  const [isFailureNetworkModalOpened, setIsFailureNetworkModalOpened] = useState(false);
+  const [
+    isFailureNetworkModalOpened,
+    setIsFailureNetworkModalOpened,
+  ] = useState(false);
   const [isLoadingModalOpened, setIsLoadingModalOpened] = useState(false);
-  const [resultText, setResultText] = useState("");
-  const [failureText, setFailureText] = useState("");
+  const [resultText, setResultText] = useState('');
+  const [failureText, setFailureText] = useState('');
 
   const [enteredAccountNumber, setEnteredAccountNumber] = useState('');
   const [enteredAccountType, setEnteredAccountType] = useState('');
@@ -58,21 +61,23 @@ const AccountUpdatePage = () => {
             acctType: enteredAccountType,
             acctInterestRate: enteredInterestRate,
             acctOverdraft: enteredOverdraft,
-          }
+          },
         })
-        .then((response) => {
+        .then(response => {
           let responseData = response.data;
           if (responseData.success) {
-            setResultText(responseData.smallText || "Account updated successfully");
+            setResultText(
+              responseData.smallText || 'Account updated successfully'
+            );
             displayLoadingModal();
             displayModal();
           } else {
-            setFailureText(responseData.smallText || "Account update failed");
+            setFailureText(responseData.smallText || 'Account update failed');
             displayLoadingModal();
             displayFailedModal();
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           if (error.response) {
             displayLoadingModal();
             displayFailedModal();
@@ -84,7 +89,7 @@ const AccountUpdatePage = () => {
           }
         });
     } catch (e) {
-      console.log("Error in account update: " + e);
+      console.log('Error in account update: ' + e);
       displayLoadingModal();
       displayFailedModal();
     }
@@ -120,7 +125,7 @@ const AccountUpdatePage = () => {
                   labelText="Account Number"
                   placeholder="Enter account number"
                   value={enteredAccountNumber}
-                  onChange={(e) => setEnteredAccountNumber(e.target.value)}
+                  onChange={e => setEnteredAccountNumber(e.target.value)}
                 />
               </div>
 
@@ -129,7 +134,7 @@ const AccountUpdatePage = () => {
                   id="account-type"
                   titleText="Account Type"
                   label="Account Type"
-                  items={["MORTGAGE", "ISA", "LOAN", "SAVING", "CURRENT"]}
+                  items={['MORTGAGE', 'ISA', 'LOAN', 'SAVING', 'CURRENT']}
                   onChange={({ selectedItem }) =>
                     setEnteredAccountType(selectedItem)
                   }
@@ -144,7 +149,7 @@ const AccountUpdatePage = () => {
                   labelText="Interest Rate"
                   placeholder="Enter interest rate"
                   value={enteredInterestRate}
-                  onChange={(e) => setEnteredInterestRate(e.target.value)}
+                  onChange={e => setEnteredInterestRate(e.target.value)}
                 />
               </div>
 
@@ -155,7 +160,7 @@ const AccountUpdatePage = () => {
                   labelText="Overdraft Limit"
                   placeholder="Enter overdraft limit"
                   value={enteredOverdraft}
-                  onChange={(e) => setEnteredOverdraft(e.target.value)}
+                  onChange={e => setEnteredOverdraft(e.target.value)}
                 />
               </div>
 
@@ -200,11 +205,12 @@ const AccountUpdatePage = () => {
             <h5>Account update failed</h5>
             <br />
             <br />
-            <p>{failureText || "Please check that all inputs are valid."}</p>
+            <p>{failureText || 'Please check that all inputs are valid.'}</p>
           </Modal>
         </div>
         <div className="right-content-account">
-          <img className="right-content-account"
+          <img
+            className="right-content-account"
             src={`${process.env.PUBLIC_URL}/ibm-db2-support-leadspace.png`}
             alt="account update"
           />

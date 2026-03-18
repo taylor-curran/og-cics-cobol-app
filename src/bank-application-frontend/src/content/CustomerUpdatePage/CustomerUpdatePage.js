@@ -22,10 +22,13 @@ import {
 const CustomerUpdatePage = () => {
   const [isModalOpened, setModalOpened] = useState(false);
   const [isFailureModalOpened, setIsFailureModalOpened] = useState(false);
-  const [isFailureNetworkModalOpened, setIsFailureNetworkModalOpened] = useState(false);
+  const [
+    isFailureNetworkModalOpened,
+    setIsFailureNetworkModalOpened,
+  ] = useState(false);
   const [isLoadingModalOpened, setIsLoadingModalOpened] = useState(false);
-  const [resultText, setResultText] = useState("");
-  const [failureText, setFailureText] = useState("");
+  const [resultText, setResultText] = useState('');
+  const [failureText, setFailureText] = useState('');
 
   const [enteredCustomerNumber, setEnteredCustomerNumber] = useState('');
   const [enteredCustomerName, setEnteredCustomerName] = useState('');
@@ -53,29 +56,37 @@ const CustomerUpdatePage = () => {
   async function updateCustomer() {
     try {
       await axios
-        .post(process.env.REACT_APP_CUSTOMERSERVICES_URL + '/updatecust', null, {
-          params: {
-            custNumber: enteredCustomerNumber,
-            custName: enteredCustomerName,
-            custAddress: enteredCustomerAddress,
-            custDoB: enteredDateOfBirth,
-            custCreditScore: enteredCreditScore ? parseInt(enteredCreditScore) : 0,
-            custReviewDate: enteredReviewDate,
+        .post(
+          process.env.REACT_APP_CUSTOMERSERVICES_URL + '/updatecust',
+          null,
+          {
+            params: {
+              custNumber: enteredCustomerNumber,
+              custName: enteredCustomerName,
+              custAddress: enteredCustomerAddress,
+              custDoB: enteredDateOfBirth,
+              custCreditScore: enteredCreditScore
+                ? parseInt(enteredCreditScore)
+                : 0,
+              custReviewDate: enteredReviewDate,
+            },
           }
-        })
-        .then((response) => {
+        )
+        .then(response => {
           let responseData = response.data;
           if (responseData.success) {
-            setResultText(responseData.smallText || "Customer updated successfully");
+            setResultText(
+              responseData.smallText || 'Customer updated successfully'
+            );
             displayLoadingModal();
             displayModal();
           } else {
-            setFailureText(responseData.smallText || "Customer update failed");
+            setFailureText(responseData.smallText || 'Customer update failed');
             displayLoadingModal();
             displayFailedModal();
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           if (error.response) {
             displayLoadingModal();
             displayFailedModal();
@@ -87,7 +98,7 @@ const CustomerUpdatePage = () => {
           }
         });
     } catch (e) {
-      console.log("Error in customer update: " + e);
+      console.log('Error in customer update: ' + e);
       displayLoadingModal();
       displayFailedModal();
     }
@@ -123,7 +134,7 @@ const CustomerUpdatePage = () => {
                   labelText="Customer Number"
                   placeholder="Enter customer number"
                   value={enteredCustomerNumber}
-                  onChange={(e) => setEnteredCustomerNumber(e.target.value)}
+                  onChange={e => setEnteredCustomerNumber(e.target.value)}
                 />
               </div>
               <div style={{ width: 500 }}>
@@ -133,7 +144,7 @@ const CustomerUpdatePage = () => {
                   labelText="Customer Name"
                   placeholder="Enter customer name"
                   value={enteredCustomerName}
-                  onChange={(e) => setEnteredCustomerName(e.target.value)}
+                  onChange={e => setEnteredCustomerName(e.target.value)}
                 />
               </div>
               <div style={{ width: 500 }}>
@@ -143,7 +154,7 @@ const CustomerUpdatePage = () => {
                   labelText="Customer Address"
                   placeholder="Enter customer address"
                   value={enteredCustomerAddress}
-                  onChange={(e) => setEnteredCustomerAddress(e.target.value)}
+                  onChange={e => setEnteredCustomerAddress(e.target.value)}
                 />
               </div>
               <div style={{ width: 500 }}>
@@ -153,7 +164,7 @@ const CustomerUpdatePage = () => {
                   labelText="Date of Birth (yyyy-mm-dd)"
                   placeholder="e.g. 1990-01-15"
                   value={enteredDateOfBirth}
-                  onChange={(e) => setEnteredDateOfBirth(e.target.value)}
+                  onChange={e => setEnteredDateOfBirth(e.target.value)}
                 />
               </div>
               <div style={{ width: 500 }}>
@@ -163,7 +174,7 @@ const CustomerUpdatePage = () => {
                   labelText="Credit Score"
                   placeholder="Enter credit score"
                   value={enteredCreditScore}
-                  onChange={(e) => setEnteredCreditScore(e.target.value)}
+                  onChange={e => setEnteredCreditScore(e.target.value)}
                 />
               </div>
               <div style={{ width: 500 }}>
@@ -173,7 +184,7 @@ const CustomerUpdatePage = () => {
                   labelText="Review Date (yyyy-mm-dd)"
                   placeholder="e.g. 2025-06-01"
                   value={enteredReviewDate}
-                  onChange={(e) => setEnteredReviewDate(e.target.value)}
+                  onChange={e => setEnteredReviewDate(e.target.value)}
                 />
               </div>
               <Button className="displayModal" onClick={submitButtonHandler}>
@@ -217,11 +228,12 @@ const CustomerUpdatePage = () => {
             <h5>Customer update failed</h5>
             <br />
             <br />
-            <p>{failureText || "Please check that all inputs are valid."}</p>
+            <p>{failureText || 'Please check that all inputs are valid.'}</p>
           </Modal>
         </div>
         <div className="right-content-account">
-          <img className="right-content-account"
+          <img
+            className="right-content-account"
             src={`${process.env.PUBLIC_URL}/ibm-db2-support-leadspace.png`}
             alt="customer update"
           />

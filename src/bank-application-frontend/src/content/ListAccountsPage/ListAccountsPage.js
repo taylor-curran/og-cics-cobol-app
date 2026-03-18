@@ -29,10 +29,13 @@ import {
 const ListAccountsPage = () => {
   const [isTableOpened, setTableOpened] = useState(false);
   const [isFailureModalOpened, setIsFailureModalOpened] = useState(false);
-  const [isFailureNetworkModalOpened, setIsFailureNetworkModalOpened] = useState(false);
+  const [
+    isFailureNetworkModalOpened,
+    setIsFailureNetworkModalOpened,
+  ] = useState(false);
   const [isLoadingModalOpened, setIsLoadingModalOpened] = useState(false);
-  const [resultTitle, setResultTitle] = useState("");
-  const [failureText, setFailureText] = useState("");
+  const [resultTitle, setResultTitle] = useState('');
+  const [failureText, setFailureText] = useState('');
   const [accountRows, setAccountRows] = useState([]);
 
   const [enteredCustomerNumber, setEnteredCustomerNumber] = useState('');
@@ -64,9 +67,9 @@ const ListAccountsPage = () => {
         .post(process.env.REACT_APP_CUSTOMERSERVICES_URL + '/listacc', null, {
           params: {
             custNumber: enteredCustomerNumber,
-          }
+          },
         })
-        .then((response) => {
+        .then(response => {
           let responseData = response.data;
           if (responseData.success) {
             setResultTitle(responseData.largeText);
@@ -74,21 +77,41 @@ const ListAccountsPage = () => {
             let rows = accounts.map((acc, index) => ({
               id: String(acc.commAccno || acc.accountNumber || index),
               accountType: acc.commAccType || acc.accountType || '',
-              availableBalance: acc.commAvailBal != null ? String(acc.commAvailBal) : (acc.availableBalance != null ? String(acc.availableBalance) : ''),
-              actualBalance: acc.commActBal != null ? String(acc.commActBal) : (acc.actualBalance != null ? String(acc.actualBalance) : ''),
-              interestRate: acc.commIntRate != null ? String(acc.commIntRate) : (acc.interestRate != null ? String(acc.interestRate) : ''),
-              overdraft: acc.commOverdraft != null ? String(acc.commOverdraft) : (acc.overdraft != null ? String(acc.overdraft) : ''),
+              availableBalance:
+                acc.commAvailBal != null
+                  ? String(acc.commAvailBal)
+                  : acc.availableBalance != null
+                  ? String(acc.availableBalance)
+                  : '',
+              actualBalance:
+                acc.commActBal != null
+                  ? String(acc.commActBal)
+                  : acc.actualBalance != null
+                  ? String(acc.actualBalance)
+                  : '',
+              interestRate:
+                acc.commIntRate != null
+                  ? String(acc.commIntRate)
+                  : acc.interestRate != null
+                  ? String(acc.interestRate)
+                  : '',
+              overdraft:
+                acc.commOverdraft != null
+                  ? String(acc.commOverdraft)
+                  : acc.overdraft != null
+                  ? String(acc.overdraft)
+                  : '',
             }));
             setAccountRows(rows);
             displayLoadingModal();
             setTableOpened(true);
           } else {
-            setFailureText(responseData.smallText || "Failed to list accounts");
+            setFailureText(responseData.smallText || 'Failed to list accounts');
             displayLoadingModal();
             displayFailedModal();
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           if (error.response) {
             displayLoadingModal();
             displayFailedModal();
@@ -100,7 +123,7 @@ const ListAccountsPage = () => {
           }
         });
     } catch (e) {
-      console.log("Error in list accounts: " + e);
+      console.log('Error in list accounts: ' + e);
       displayLoadingModal();
       displayFailedModal();
     }
@@ -137,7 +160,7 @@ const ListAccountsPage = () => {
                   labelText="Customer Number"
                   placeholder="Enter customer number"
                   value={enteredCustomerNumber}
-                  onChange={(e) => setEnteredCustomerNumber(e.target.value)}
+                  onChange={e => setEnteredCustomerNumber(e.target.value)}
                 />
               </div>
               <Button className="displayModal" onClick={submitButtonHandler}>
@@ -151,21 +174,29 @@ const ListAccountsPage = () => {
               <h4>{resultTitle}</h4>
               <br />
               <DataTable rows={accountRows} headers={accountHeaders}>
-                {({ rows, headers, getTableProps, getHeaderProps, getRowProps }) => (
+                {({
+                  rows,
+                  headers,
+                  getTableProps,
+                  getHeaderProps,
+                  getRowProps,
+                }) => (
                   <Table {...getTableProps()}>
                     <TableHead>
                       <TableRow>
-                        {headers.map((header) => (
-                          <TableHeader {...getHeaderProps({ header })} key={header.key}>
+                        {headers.map(header => (
+                          <TableHeader
+                            {...getHeaderProps({ header })}
+                            key={header.key}>
                             {header.header}
                           </TableHeader>
                         ))}
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {rows.map((row) => (
+                      {rows.map(row => (
                         <TableRow {...getRowProps({ row })} key={row.id}>
-                          {row.cells.map((cell) => (
+                          {row.cells.map(cell => (
                             <TableCell key={cell.id}>{cell.value}</TableCell>
                           ))}
                         </TableRow>
@@ -202,7 +233,9 @@ const ListAccountsPage = () => {
             <h5>Failed to list accounts</h5>
             <br />
             <br />
-            <p>{failureText || "Please check that the customer number is valid."}</p>
+            <p>
+              {failureText || 'Please check that the customer number is valid.'}
+            </p>
           </Modal>
         </div>
       </div>

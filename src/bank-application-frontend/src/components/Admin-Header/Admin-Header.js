@@ -36,7 +36,7 @@ const AdminHeader = () => {
             onClick={onClickSideNavExpand}
             isActive={isSideNavExpanded}
           />
-          <HeaderName element={Link} to="/" >
+          <HeaderName element={Link} to="/">
             CICS Banking Sample Application
           </HeaderName>
           <SideNav

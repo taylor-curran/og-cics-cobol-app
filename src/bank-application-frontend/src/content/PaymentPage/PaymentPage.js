@@ -24,9 +24,12 @@ import {
 const PaymentPage = () => {
   const [isModalOpened, setModalOpened] = useState(false);
   const [isFailureModalOpened, setIsFailureModalOpened] = useState(false);
-  const [isFailureNetworkModalOpened, setIsFailureNetworkModalOpened] = useState(false);
+  const [
+    isFailureNetworkModalOpened,
+    setIsFailureNetworkModalOpened,
+  ] = useState(false);
   const [isLoadingModalOpened, setIsLoadingModalOpened] = useState(false);
-  const [resultText, setResultText] = useState("");
+  const [resultText, setResultText] = useState('');
 
   const [enteredAccountNumber, setEnteredAccountNumber] = useState('');
   const [enteredAmount, setEnteredAmount] = useState('');
@@ -58,21 +61,23 @@ const PaymentPage = () => {
             debit: paymentType === 'Debit',
             amount: parseFloat(enteredAmount),
             organisation: enteredOrganisation,
-          }
+          },
         })
-        .then((response) => {
+        .then(response => {
           let responseData = response.data;
           if (responseData.success) {
-            setResultText(responseData.smallText || "Payment processed successfully");
+            setResultText(
+              responseData.smallText || 'Payment processed successfully'
+            );
             displayLoadingModal();
             displayModal();
           } else {
-            setResultText(responseData.smallText || "Payment failed");
+            setResultText(responseData.smallText || 'Payment failed');
             displayLoadingModal();
             displayFailedModal();
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           if (error.response) {
             displayLoadingModal();
             displayFailedModal();
@@ -84,7 +89,7 @@ const PaymentPage = () => {
           }
         });
     } catch (e) {
-      console.log("Error in payment: " + e);
+      console.log('Error in payment: ' + e);
       displayLoadingModal();
       displayFailedModal();
     }
@@ -120,7 +125,7 @@ const PaymentPage = () => {
                   labelText="Account Number"
                   placeholder="Enter account number"
                   value={enteredAccountNumber}
-                  onChange={(e) => setEnteredAccountNumber(e.target.value)}
+                  onChange={e => setEnteredAccountNumber(e.target.value)}
                 />
               </div>
 
@@ -129,10 +134,17 @@ const PaymentPage = () => {
                   legendText="Payment Type"
                   name="payment-type"
                   defaultSelected="Debit"
-                  onChange={(value) => setPaymentType(value)}
-                >
-                  <RadioButton labelText="Debit" value="Debit" id="radio-debit" />
-                  <RadioButton labelText="Credit" value="Credit" id="radio-credit" />
+                  onChange={value => setPaymentType(value)}>
+                  <RadioButton
+                    labelText="Debit"
+                    value="Debit"
+                    id="radio-debit"
+                  />
+                  <RadioButton
+                    labelText="Credit"
+                    value="Credit"
+                    id="radio-credit"
+                  />
                 </RadioButtonGroup>
               </div>
 
@@ -143,7 +155,7 @@ const PaymentPage = () => {
                   labelText="Amount"
                   placeholder="Enter amount"
                   value={enteredAmount}
-                  onChange={(e) => setEnteredAmount(e.target.value)}
+                  onChange={e => setEnteredAmount(e.target.value)}
                 />
               </div>
 
@@ -154,7 +166,7 @@ const PaymentPage = () => {
                   labelText="Organisation Name"
                   placeholder="Enter organisation name"
                   value={enteredOrganisation}
-                  onChange={(e) => setEnteredOrganisation(e.target.value)}
+                  onChange={e => setEnteredOrganisation(e.target.value)}
                 />
               </div>
 
@@ -199,11 +211,12 @@ const PaymentPage = () => {
             <h5>Payment failed</h5>
             <br />
             <br />
-            <p>{resultText || "Please check that all inputs are valid."}</p>
+            <p>{resultText || 'Please check that all inputs are valid.'}</p>
           </Modal>
         </div>
         <div className="right-content-account">
-          <img className="right-content-account"
+          <img
+            className="right-content-account"
             src={`${process.env.PUBLIC_URL}/ibm-db2-support-leadspace.png`}
             alt="payment"
           />

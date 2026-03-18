@@ -42,8 +42,6 @@ const AdminPage = () => {
     setSuccessModalOpened(wasOpened => !wasOpened);
   }
 
-
-
   return (
     <Grid className="landing-page" fullWidth>
       <Column lg={16} md={8} sm={4} className="landing-page__banner">
@@ -181,7 +179,9 @@ const AdminPage = () => {
                   <div className="control-panel-right-child">
                     <img
                       className="landing-page__illo"
-                      src={`${process.env.PUBLIC_URL}/promo-band-illustration-1920x1080-2x.png`}
+                      src={`${
+                        process.env.PUBLIC_URL
+                      }/promo-band-illustration-1920x1080-2x.png`}
                       alt="Carbon illustration"
                     />
                   </div>
